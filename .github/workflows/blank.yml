@@ -13,85 +13,20 @@ jobs:
       - name: Auto-Fix Project Structure
         run: |
           mkdir -p app/src/main/java/com/example/bmwe60idrive
-          # Przenieś MainActivity.kt na właściwe miejsce, jeśli trafił gdzie indziej
           FOUND_KT=$(find . -name "MainActivity.kt" | head -n 1)
           if [ -n "$FOUND_KT" ] && [ "$FOUND_KT" != "./app/src/main/java/com/example/bmwe60idrive/MainActivity.kt" ]; then
             cp "$FOUND_KT" app/src/main/java/com/example/bmwe60idrive/MainActivity.kt
           fi
           
-          cat << 'EOF' > gradle.properties
-          android.useAndroidX=true
-          android.enableJetifier=true
-          EOF
+          printf "android.useAndroidX=true\nandroid.enableJetifier=true\n" > gradle.properties
 
-          cat << 'EOF' > settings.gradle
-          pluginManagement {
-              repositories { google(); mavenCentral(); gradlePluginPortal() }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories { google(); mavenCentral() }
-          }
-          rootProject.name = "BMW-E60-Launcher"
-          include ':app'
-          EOF
+          printf "pluginManagement {\n  repositories { google(); mavenCentral(); gradlePluginPortal() }\n}\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories { google(); mavenCentral() }\n}\nrootProject.name = 'BMW-E60-Launcher'\ninclude ':app'\n" > settings.gradle
 
-          cat << 'EOF' > build.gradle
-          plugins {
-              id 'com.android.application' version '8.2.2' apply false
-              id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
-          }
-          EOF
+          printf "plugins {\n  id 'com.android.application' version '8.2.2' apply false\n  id 'org.jetbrains.kotlin.android' version '1.9.22' apply false\n}\n" > build.gradle
 
-          cat << 'EOF' > app/build.gradle
-          plugins {
-              id 'com.android.application'
-              id 'org.jetbrains.kotlin.android'
-          }
-          android {
-              namespace 'com.example.bmwe60idrive'
-              compileSdk 34
-              defaultConfig {
-                  applicationId "com.example.bmwe60idrive"
-                  minSdk 24
-                  targetSdk 34
-                  versionCode 1
-                  versionName "1.0"
-              }
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
-              }
-              kotlinOptions {
-                  jvmTarget = '17'
-              }
-          }
-          dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-          }
-          EOF
+          printf "plugins {\n  id 'com.android.application'\n  id 'org.jetbrains.kotlin.android'\n}\nandroid {\n  namespace 'com.example.bmwe60idrive'\n  compileSdk 34\n  defaultConfig {\n    applicationId 'com.example.bmwe60idrive'\n    minSdk 24\n    targetSdk 34\n    versionCode 1\n    versionName '1.0'\n  }\n  compileOptions {\n    sourceCompatibility JavaVersion.VERSION_17\n    targetCompatibility JavaVersion.VERSION_17\n  }\n  kotlinOptions {\n    jvmTarget = '17'\n  }\n}\ndependencies {\n  implementation 'androidx.appcompat:appcompat:1.6.1'\n}\n" > app/build.gradle
 
-          cat << 'EOF' > app/src/main/AndroidManifest.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://android.com">
-              <application
-                  android:allowBackup="true"
-                  android:label="BMW E60 iDrive"
-                  android:theme="@style/Theme.AppCompat.NoActionBar">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true"
-                      android:screenOrientation="landscape">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.HOME" />
-                          <category android:name="android.intent.category.DEFAULT" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-                  </activity>
-              </application>
-          </manifest>
-          EOF
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<manifest xmlns:android="http://android.com">\n  <application android:allowBackup="true" android:label="BMW E60 iDrive" android:theme="@style/Theme.AppCompat.NoActionBar">\n    <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="landscape">\n      <intent-filter>\n        <action android:name="android.intent.action.MAIN" />\n        <category android:name="android.intent.category.HOME" />\n        <category android:name="android.intent.category.DEFAULT" />\n        <category android:name="android.intent.category.LAUNCHER" />\n      </intent-filter>\n    </activity>\n  </application>\n</manifest>\n' > app/src/main/AndroidManifest.xml
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
