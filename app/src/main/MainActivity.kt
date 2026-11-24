@@ -1,7 +1,5 @@
 package com.example.bmwe60idrive
 
-import android.animation.ValueAnimator
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.*
 import android.graphics.drawable.GradientDrawable
@@ -11,7 +9,6 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.LinearInterpolator
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.sin
@@ -28,12 +25,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatusBanner: TextView
     private lateinit var progressTorque: ProgressBar
     private lateinit var progressPower: ProgressBar
-    private var isDemoRunning = false
-    private var lightsOn = true
-    private var doorsOpen = false
-    private var easyEntryEnabled = true
-    private val handler = Handler(Looper.getMainLooper())
-    private var demoPhase = 0.0
+    private var isDemoRunning = false; private var lightsOn = true; private var doorsOpen = false; private var easyEntryEnabled = true
+    private val handler = Handler(Looper.getMainLooper()); private var demoPhase = 0.0
 
     private val demoRunnable = object : Runnable {
         override fun run() {
@@ -54,25 +47,25 @@ class MainActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        setContentView(buildIdrive8Layout())
+        setContentView(buildLayout())
         updateLiveTelemetry(810, 12, 45, 89, 94, 14.2)
     }
 
-    private fun buildIdrive8Layout(): View {
+    private fun buildLayout(): View {
         val root = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setBackgroundColor(Color.parseColor("#080A0F")); setPadding(24, 20, 24, 20) }
-        val sideDock = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(12, 16, 12, 16); background = card("#111622", "#26324A", 28f) }
-        sideDock.addView(BmwRoundelView(this).apply { layoutParams = LinearLayout.LayoutParams(86, 86).apply { bottomMargin = 18 } })
-        listOf(Pair("NAWI", "Nawigacja GPS") to "#00A3E0", Pair("MUZYKA", "Odtwarzacz Media") to "#1E50A2", Pair("BMW CCC", "Oryginalne menu BMW") to "#E21B22", Pair("FOTEL", "Easy Entry") to "#00A3E0").forEach { (item, col) ->
-            sideDock.addView(Button(this).apply {
-                text = item.first; setTextColor(Color.WHITE); textSize = 11f; typeface = Typeface.DEFAULT_BOLD; background = card("#1A2234", col, 18f)
+        val dock = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; setPadding(12, 16, 12, 16); background = card("#111622", "#26324A", 28f) }
+        dock.addView(BmwRoundelView(this).apply { layoutParams = LinearLayout.LayoutParams(86, 86).apply { bottomMargin = 18 } })
+        listOf(Pair("NAWI", "Nawigacja GPS") to "#00A3E0", Pair("MUZYKA", "Odtwarzacz Media") to "#1E50A2", Pair("BMW CCC", "Oryginalne menu BMW") to "#E21B22", Pair("FOTEL", "Easy Entry") to "#00A3E0").forEach { (itPair, col) ->
+            dock.addView(Button(this).apply {
+                text = itPair.first; setTextColor(Color.WHITE); textSize = 11f; typeface = Typeface.DEFAULT_BOLD; background = card("#1A2234", col, 18f)
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = 8; bottomMargin = 8 }
                 setOnClickListener {
-                    if (item.first == "FOTEL") { easyEntryEnabled = !easyEntryEnabled; tvStatusBanner.text = if (easyEntryEnabled) "E60 EASY ENTRY: AKTYWNE" else "E60 EASY ENTRY: WYŁĄCZONE" }
-                    else tvStatusBanner.text = item.second
+                    if (itPair.first == "FOTEL") { easyEntryEnabled = !easyEntryEnabled; tvStatusBanner.text = if (easyEntryEnabled) "E60 EASY ENTRY: AKTYWNE" else "E60 EASY ENTRY: WYŁĄCZONE" }
+                    else tvStatusBanner.text = itPair.second
                 }
             })
         }
-        root.addView(sideDock, LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.MATCH_PARENT).apply { marginEnd = 20 })
+        root.addView(dock, LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.MATCH_PARENT).apply { marginEnd = 20 })
 
         val center = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; background = card("#0E131D", "#1F293D", 32f); setPadding(24, 20, 24, 20) }
         val head = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
@@ -93,13 +86,12 @@ class MainActivity : AppCompatActivity() {
 
         val right = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; background = card("#0E131D", "#1F293D", 32f); setPadding(24, 20, 24, 20) }
         right.addView(TextView(this).apply { text = "SPORT DISPLAYS  •  LIVE CAN"; setTextColor(Color.parseColor("#94A3B8")); textSize = 12f; typeface = Typeface.DEFAULT_BOLD; setPadding(0, 0, 0, 14) })
-        tvPower = lbl("12 KM", "#38BDF8"); progressPower = bar("#00A3E0", 250); right.addView(metricCard("MOC SILNIKA", tvPower, progressPower))
-        tvTorque = lbl("45 Nm", "#F43F5E"); progressTorque = bar("#E21B22", 500); right.addView(metricCard("MOMENT OBROTOWY", tvTorque, progressTorque))
+        tvPower = lbl("12 KM", "#38BDF8"); progressPower = bar("#00A3E0", 250); right.addView(mCard("MOC SILNIKA", tvPower, progressPower))
+        tvTorque = lbl("45 Nm", "#F43F5E"); progressTorque = bar("#E21B22", 500); right.addView(mCard("MOMENT OBROTOWY", tvTorque, progressTorque))
         tvRpm = lbl("810 RPM", "#FFFFFF"); right.addView(row("OBROTY SILNIKA (0x0AA)", tvRpm))
-
         val grid = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f).apply { topMargin = 10 } }
-        tvCoolant = tileVal("89°C", "#38BDF8"); tvOil = tileVal("94°C", "#F59E0B"); tvVoltage = tileVal("14.2V", "#10B981")
-        grid.addView(miniTile("CIECZ (ECT)", tvCoolant)); grid.addView(miniTile("OLEJ (EOT)", tvOil)); grid.addView(miniTile("ŁADOWANIE", tvVoltage))
+        tvCoolant = tVal("89°C", "#38BDF8"); tvOil = tVal("94°C", "#F59E0B"); tvVoltage = tVal("14.2V", "#10B981")
+        grid.addView(mTile("CIECZ (ECT)", tvCoolant)); grid.addView(mTile("OLEJ (EOT)", tvOil)); grid.addView(mTile("ŁADOWANIE", tvVoltage))
         right.addView(grid)
         root.addView(right, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
         return root
@@ -115,4 +107,5 @@ class MainActivity : AppCompatActivity() {
     private fun chip(txt: String, bg: String, fn: (View) -> Unit) = Button(this).apply { text = txt; setTextColor(Color.WHITE); textSize = 10f; typeface = Typeface.DEFAULT_BOLD; background = card(bg, "#334155", 16f); setPadding(16, 8, 16, 8); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginEnd = 10 }; setOnClickListener(fn) }
     private fun lbl(txt: String, col: String) = TextView(this).apply { text = txt; setTextColor(Color.parseColor(col)); textSize = 20f; typeface = Typeface.DEFAULT_BOLD }
     private fun bar(col: String, maxV: Int) = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = maxV; progressDrawable.setColorFilter(Color.parseColor(col), PorterDuff.Mode.SRC_IN); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 18).apply { topMargin = 6 } }
-    private fun metricCard(t: String, v: TextView, b: ProgressBar) = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; background = card("#151C2B", "#26324A", 20f); setPadding(18, 12, 18, 14); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = 10 }; addView(LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; addView(TextView(context).apply { text = t; setTextColor(Color.parseColor("#CBD5E1")); textSize = 11f; typeface = Typeface.DEFAULT_BOLD; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }); addView(v) }); addView(b) }
+    private fun mCard(t: String, v: TextView, b: ProgressBar) = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; background = card("#151C2B", "#26324A", 20f); setPadding(18, 12, 18, 14); layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = 10 }; addView(LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; addView(TextView(context).apply { text = t; setTextColor(Color.parseColor("#CBD5E1")); textSize = 11f; typeface = Typeface.DEFAULT_BOLD; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }); addView(v) }); addView(b) }
+    private fun row(t: String, v: TextView) = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; background = card("#151C2B", "#26324A", 20f); setPadding(18, 10, 18, 10); addView(TextView(context).apply { text = t; setTextColor(Color.parseColor("#CBD5E1")); textSize = 11f; layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }); addView(v.apply { textSize = 16f }) }
