@@ -10,184 +10,28 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Build Full Project Files
+      - name: Setup Project
         run: |
           mkdir -p app/src/main/java/com/example/bmwe60idrive
+          cp MainActivity.kt app/src/main/java/com/example/bmwe60idrive/MainActivity.kt
           printf "android.useAndroidX=true\nandroid.enableJetifier=true\n" > gradle.properties
           printf "pluginManagement {\n  repositories { google(); mavenCentral(); gradlePluginPortal() }\n}\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories { google(); mavenCentral() }\n}\nrootProject.name = 'BMW-E60-Launcher'\ninclude ':app'\n" > settings.gradle
           printf "plugins {\n  id 'com.android.application' version '8.2.2' apply false\n  id 'org.jetbrains.kotlin.android' version '1.9.22' apply false\n}\n" > build.gradle
           printf "plugins {\n  id 'com.android.application'\n  id 'org.jetbrains.kotlin.android'\n}\nandroid {\n  namespace 'com.example.bmwe60idrive'\n  compileSdk 34\n  defaultConfig {\n    applicationId 'com.example.bmwe60idrive'\n    minSdk 24\n    targetSdk 34\n    versionCode 1\n    versionName '1.0'\n  }\n  compileOptions {\n    sourceCompatibility JavaVersion.VERSION_17\n    targetCompatibility JavaVersion.VERSION_17\n  }\n  kotlinOptions {\n    jvmTarget = '17'\n  }\n}\ndependencies {\n  implementation 'androidx.appcompat:appcompat:1.6.1'\n}\n" > app/build.gradle
-
           python3 -c '
           a = chr(97)+"nd"+chr(114)+"oid"
           s = chr(115)+"chemas."+a+".com"
-          xml = f"""<?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:{a}="http://{s}/apk/res/{a}">
-            <application {a}:allowBackup="true" {a}:label="BMW E60 iDrive" {a}:theme="@style/Theme.AppCompat.NoActionBar">
-              <activity {a}:name=".MainActivity" {a}:exported="true" {a}:screenOrientation="landscape">
-                <intent-filter>
-                  <action {a}:name="{a}.intent.action.MAIN" />
-                  <category {a}:name="{a}.intent.category.HOME" />
-                  <category {a}:name="{a}.intent.category.DEFAULT" />
-                  <category {a}:name="{a}.intent.category.LAUNCHER" />
-                </intent-filter>
-              </activity>
-            </application>
-          </manifest>"""
+          xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<manifest xmlns:"+a+"=\"http://"+s+"/apk/res/"+a+"\">\n  <application "+a+":allowBackup=\"true\" "+a+":label=\"BMW E60 iDrive\" "+a+":theme=\"@style/Theme.AppCompat.NoActionBar\">\n    <activity "+a+":name=\".MainActivity\" "+a+":exported=\"true\" "+a+":screenOrientation=\"landscape\">\n      <intent-filter>\n        <action "+a+":name=\""+a+".intent.action.MAIN\" />\n        <category "+a+":name=\""+a+".intent.category.HOME\" />\n        <category "+a+":name=\""+a+".intent.category.DEFAULT\" />\n        <category "+a+":name=\""+a+".intent.category.LAUNCHER\" />\n      </intent-filter>\n    </activity>\n  </application>\n</manifest>"
           open("app/src/main/AndroidManifest.xml", "w").write(xml)
           '
-
-          cat << 'EOF' > app/src/main/java/com/example/bmwe60idrive/MainActivity.kt
-          package com.example.bmwe60idrive
-
-          import android.animation.ValueAnimator
-          import android.content.Context
-          import android.content.pm.ActivityInfo
-          import android.graphics.*
-          import android.graphics.drawable.GradientDrawable
-          import android.os.Bundle
-          import android.os.Handler
-          import android.os.Looper
-          import android.view.Gravity
-          import android.view.View
-          import android.view.WindowManager
-          import android.view.animation.LinearInterpolator
-          import android.widget.*
-          import androidx.appcompat.app.AppCompatActivity
-          import kotlin.math.sin
-          import kotlin.random.Random
-
-          class MainActivity : AppCompatActivity() {
-
-              private lateinit var e60CarView: BmwE60VisualizerView
-              private lateinit var tvRpm: TextView
-              private lateinit var tvPower: TextView
-              private lateinit var tvTorque: TextView
-              private lateinit var tvCoolant: TextView
-              private lateinit var tvOil: TextView
-              private lateinit var tvVoltage: TextView
-              private lateinit var tvStatusBanner: TextView
-              private lateinit var progressTorque: ProgressBar
-              private lateinit var progressPower: ProgressBar
-
-              private var isDemoRunning = false
-              private var lightsOn = true
-              private var doorsOpen = false
-              private var easyEntryEnabled = true
-              private val handler = Handler(Looper.getMainLooper())
-              private var demoPhase = 0.0
-
-              private val demoRunnable = object : Runnable {
-                  override fun run() {
-                      if (!isDemoRunning) return
-                      demoPhase += 0.08
-                      val wave = (sin(demoPhase) + 1.0) / 2.0
-                      val rpm = (820 + wave * 3400 + Random.nextInt(-25, 25)).toInt()
-                      val torque = (60 + wave * 360).toInt()
-                      val power = ((torque * rpm) / 7023.0).toInt()
-                      val coolant = (88 + wave * 4).toInt()
-                      val oil = (92 + wave * 8).toInt()
-                      val voltage = 14.1 + (wave * 0.3)
-
-                      updateLiveTelemetry(rpm, power, torque, coolant, oil, voltage)
-                      handler.postDelayed(this, 50)
-                  }
-              }
-
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
-                  requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                  window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-                  @Suppress("DEPRECATION")
-                  window.decorView.systemUiVisibility = (
-                          View.SYSTEM_UI_FLAG_FULLSCREEN
-                                  or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                  or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                          )
-
-                  setContentView(buildIdrive8Layout())
-                  updateLiveTelemetry(810, 12, 45, 89, 94, 14.2)
-              }
-
-              private fun buildIdrive8Layout(): View {
-                  val root = LinearLayout(this).apply {
-                      orientation = LinearLayout.HORIZONTAL
-                      setBackgroundColor(Color.parseColor("#080A0F"))
-                      setPadding(24, 20, 24, 20)
-                  }
-
-                  val sideDock = LinearLayout(this).apply {
-                      orientation = LinearLayout.VERTICAL
-                      gravity = Gravity.CENTER_HORIZONTAL
-                      setPadding(12, 16, 12, 16)
-                      background = createGlassCard("#111622", "#26324A", 28f)
-                  }
-                  val sideParams = LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.MATCH_PARENT).apply {
-                      marginEnd = 20
-                  }
-
-                  sideDock.addView(BmwRoundelView(this).apply {
-                      layoutParams = LinearLayout.LayoutParams(86, 86).apply { bottomMargin = 18 }
-                  })
-
-                  val menuItems = listOf(
-                      Pair("NAWI", "Otwieranie Nawigacji GPS...") to "#00A3E0",
-                      Pair("MUZYKA", "Odtwarzacz Media / Spotify") to "#1E50A2",
-                      Pair("BMW CCC", "Przełączanie na oryginalne menu BMW...") to "#E21B22",
-                      Pair("FOTEL", "Przełączono funkcję Easy Entry E60") to "#00A3E0"
-                  )
-
-                  menuItems.forEach { (item, accentColor) ->
-                      val btn = Button(this).apply {
-                          text = item.first
-                          setTextColor(Color.WHITE)
-                          textSize = 11f
-                          typeface = Typeface.DEFAULT_BOLD
-                          background = createGlassCard("#1A2234", accentColor, 18f)
-                          layoutParams = LinearLayout.LayoutParams(
-                              LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
-                          ).apply { topMargin = 8; bottomMargin = 8 }
-
-                          setOnClickListener {
-                              if (item.first == "FOTEL") {
-                                  easyEntryEnabled = !easyEntryEnabled
-                                  val state = if (easyEntryEnabled) "AKTYWNE (Odsuwanie przy wysiadaniu)" else "WYŁĄCZONE"
-                                  tvStatusBanner.text = "E60 EASY ENTRY: $state"
-                              } else {
-                                  tvStatusBanner.text = item.second
-                              }
-                          }
-                      }
-                      sideDock.addView(btn)
-                  }
-                  root.addView(sideDock, sideParams)
-
-                  val centerPanel = LinearLayout(this).apply {
-                      orientation = LinearLayout.VERTICAL
-                      background = createGlassCard("#0E131D", "#1F293D", 32f)
-                      setPadding(24, 20, 24, 20)
-                  }
-                  val centerParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1.35f).apply {
-                      marginEnd = 20
-                  }
-
-                  val headerRow = LinearLayout(this).apply {
-                      orientation = LinearLayout.HORIZONTAL
-                      gravity = Gravity.CENTER_VERTICAL
-                  }
-                  headerRow.addView(MStripesView(this).apply {
-                      layoutParams = LinearLayout.LayoutParams(90, 28).apply { marginEnd = 14 }
-                  })
-                  headerRow.addView(TextView(this).apply {
-                      text = "BMW 525d  |  E60 M57"
-                      setTextColor(Color.WHITE)
-                      textSize = 18f
-                      typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                  })
-                  centerPanel.addView(headerRow)
-
-                  tvStatusBanner = TextView(this).apply {
-                      text = "PT-CAN / K-CAN: POŁĄCZONO  •  MAPA 2 (STAGE 1)"
-                      setTextColor(Color.parseColor("#38BDF8"))
-                      textSize = 12f
-                      typeface = Typeface.DEFAULT_BOLD
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.4'
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BMW-E60-Launcher-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
