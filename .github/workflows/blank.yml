@@ -1,4 +1,5 @@
 name: Build BMW E60 APK
+name: Build BMW E60 APK
 on: [push, workflow_dispatch]
 jobs:
   build:
@@ -10,16 +11,21 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Accept Android SDK Licenses
-        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      - name: Ensure Gradle Config Files Exist
+        run: |
+          printf "android.useAndroidX=true\nandroid.enableJetifier=true\n" > gradle.properties
+          if [ ! -f settings.gradle ]; then
+            printf "pluginManagement {\n  repositories { google(); mavenCentral(); gradlePluginPortal() }\n}\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories { google(); mavenCentral() }\n}\nrootProject.name = 'BMW-E60-Launcher'\ninclude ':app'\n" > settings.gradle
+          fi
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.4'
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BMW-E60-Launcher-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          
