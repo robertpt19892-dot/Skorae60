@@ -13,7 +13,7 @@ jobs:
       - name: Setup Project
         run: |
           mkdir -p app/src/main/java/com/example/bmwe60idrive
-          cp MainActivity.kt app/src/main/java/com/example/bmwe60idrive/MainActivity.kt
+          find . -iname "*MainActivity*" -exec cp {} app/src/main/java/com/example/bmwe60idrive/MainActivity.kt \;
           printf "android.useAndroidX=true\nandroid.enableJetifier=true\n" > gradle.properties
           printf "pluginManagement {\n  repositories { google(); mavenCentral(); gradlePluginPortal() }\n}\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories { google(); mavenCentral() }\n}\nrootProject.name = 'BMW-E60-Launcher'\ninclude ':app'\n" > settings.gradle
           printf "plugins {\n  id 'com.android.application' version '8.2.2' apply false\n  id 'org.jetbrains.kotlin.android' version '1.9.22' apply false\n}\n" > build.gradle
